@@ -28,13 +28,20 @@ delivery = st.sidebar.selectbox("Select Delivery Type", delivery_options)
 filtered = df_batsman if delivery == "All" else df_batsman[df_batsman["DeliveryType"] == delivery]
 
 # --------------------------
-# Calculate Strike Rate
+# Overall Summary in Sidebar
 # --------------------------
-if len(filtered) == 0:
-    strike_rate = 0
-else:
-    strike_rate = 100 * filtered["Runs"].sum() / len(filtered)
-st.sidebar.markdown(f"**Strike Rate:** `{strike_rate:.1f}`")
+total_runs = filtered["Runs"].sum()
+total_balls = filtered.shape[0]
+total_wickets = (filtered["Wicket"] == True).sum()
+overall_avg = total_runs / total_wickets if total_wickets > 0 else 0
+strike_rate = 100 * total_runs / total_balls if total_balls > 0 else 0
+
+st.sidebar.markdown("### Overall Metrics")
+st.sidebar.metric("Strike Rate", f"{strike_rate:.1f}")
+st.sidebar.metric("Avg Runs/Wicket", f"{overall_avg:.2f}")
+st.sidebar.metric("Total Runs", total_runs)
+st.sidebar.metric("Total Balls", total_balls)
+st.sidebar.metric("Total Wickets", total_wickets)
 
 # --------------------------
 # Define Zones based on Batting Hand
@@ -51,9 +58,9 @@ right_hand_zones = {
 left_hand_zones = {
     "Zone 1": (0.45, 0, 0.72, 1.91),
     "Zone 2": (0.18, 0, 0.45, 0.71),
-    "Zone 3": (-0.18, 0, 0.18, 0.71),  # same
+    "Zone 3": (-0.18, 0, 0.18, 0.71),
     "Zone 4": (0.18, 0.71, 0.45, 1.31),
-    "Zone 5": (-0.18, 0.71, 0.18, 1.31),  # same
+    "Zone 5": (-0.18, 0.71, 0.18, 1.31),
     "Zone 6": (-0.18, 1.31, 0.45, 1.91),
 }
 
@@ -90,10 +97,9 @@ summary = (
     .reindex(["Zone 1", "Zone 2", "Zone 3", "Zone 4", "Zone 5", "Zone 6"])
     .fillna(0)
 )
+
 summary["Avg Runs/Wicket"] = summary["Runs"] / summary["Wickets"]
 summary["Avg Runs/Wicket"] = summary["Avg Runs/Wicket"].replace([float("inf"), float("nan")], 0)
-
-
 
 # --------------------------
 # Heatmap Plotting
@@ -102,9 +108,6 @@ avg_values = summary["Avg Runs/Wicket"]
 norm = mcolors.Normalize(vmin=avg_values.min(), vmax=avg_values.max())
 cmap = cm.get_cmap('Blues')
 
-st.sidebar.markdown(f"**Average:** `{avg_values:.1f}`")
-
-
 fig, ax = plt.subplots(figsize=(10, 10))
 
 for zone, (x1, y1, x2, y2) in zones_layout.items():
@@ -112,17 +115,18 @@ for zone, (x1, y1, x2, y2) in zones_layout.items():
     avg = summary.loc[zone, "Avg Runs/Wicket"]
     color = cmap(norm(avg))
 
-    ax.add_patch(patches.Rectangle((x1, y1), w, h, edgecolor="black", facecolor=color, linewidth=2))
-
+    zone_data = filtered[filtered["Zone"] == zone]
     runs = int(summary.loc[zone, "Runs"])
     wkts = int(summary.loc[zone, "Wickets"])
+    balls = zone_data.shape[0]
+    sr = (runs / balls) * 100 if balls > 0 else 0
 
-    strike_rate_zone = (runs / filtered[filtered["Zone"] == zone].shape[0]) * 100 if filtered[filtered["Zone"] == zone].shape[0] > 0 else 0
+    ax.add_patch(patches.Rectangle((x1, y1), w, h, edgecolor="black", facecolor=color, linewidth=2))
 
     ax.text(
         x1 + w / 2,
         y1 + h / 2,
-        f"{zone}\nRuns: {runs}\nWkts: {wkts}\nAvg: {avg:.1f}\nSR: {strike_rate_zone:.1f}",
+        f"{zone}\nRuns: {runs}\nWkts: {wkts}\nAvg: {avg:.1f}\nSR: {sr:.1f}",
         ha="center",
         va="center",
         weight="bold",
@@ -130,15 +134,11 @@ for zone, (x1, y1, x2, y2) in zones_layout.items():
         color="black" if norm(avg) < 0.6 else "white"
     )
 
-
 ax.set_xlim(-0.75, 0.75)
 ax.set_ylim(0, 2)
 ax.set_xlabel("CreaseY")
 ax.set_ylabel("CreaseZ")
-
-# Title
-title = "All Batters" if batsman == "All" else batsman
-ax.set_title(title, fontsize = 16)
+ax.set_title(batsman if batsman != "All" else "All Batters", fontsize=16)
 
 # Colorbar
 sm = cm.ScalarMappable(cmap=cmap, norm=norm)
@@ -146,6 +146,5 @@ sm.set_array([])
 cbar = plt.colorbar(sm, ax=ax, fraction=0.03, pad=0.04)
 cbar.set_label("Avg Runs/Wicket")
 
-# Show Plot
+# Show plot
 st.pyplot(fig)
-
