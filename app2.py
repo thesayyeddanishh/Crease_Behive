@@ -133,7 +133,7 @@ ax.set_ylabel("CreaseZ")
 
 # Title
 title = "All Batters" if batsman == "All" else batsman
-ax.set_title(title, fontsize = 12)
+ax.set_title(title, fontsize = 16)
 
 # Colorbar
 sm = cm.ScalarMappable(cmap=cmap, norm=norm)
