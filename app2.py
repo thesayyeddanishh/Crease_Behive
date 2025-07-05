@@ -93,12 +93,17 @@ summary = (
 summary["Avg Runs/Wicket"] = summary["Runs"] / summary["Wickets"]
 summary["Avg Runs/Wicket"] = summary["Avg Runs/Wicket"].replace([float("inf"), float("nan")], 0)
 
+
+
 # --------------------------
 # Heatmap Plotting
 # --------------------------
 avg_values = summary["Avg Runs/Wicket"]
 norm = mcolors.Normalize(vmin=avg_values.min(), vmax=avg_values.max())
 cmap = cm.get_cmap('Blues')
+
+st.sidebar.markdown(f"**Average:** `{avg_values:.1f}`")
+
 
 fig, ax = plt.subplots(figsize=(10, 10))
 
