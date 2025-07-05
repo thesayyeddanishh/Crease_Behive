@@ -13,12 +13,6 @@ df = pd.read_csv("queryOutput_1751703447858.csv")
 st.sidebar.header("Filters")
 
 # --------------------------
-# Reset Filters Button
-# --------------------------
-if st.sidebar.button("Reset Filters"):
-    st.experimental_rerun()
-
-# --------------------------
 # Cascading Filter Logic (Batting Team → Batsman → Delivery Type)
 # --------------------------
 bat_team_options = ["All"] + sorted(df["BattingTeam"].dropna().unique())
