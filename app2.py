@@ -128,12 +128,12 @@ for zone, (x1, y1, x2, y2) in zones_layout.items():
 
 ax.set_xlim(-0.75, 0.75)
 ax.set_ylim(0, 2)
-ax.set_xlabel("CreaseY (Width in meters)")
-ax.set_ylabel("CreaseZ (Length in meters)")
+ax.set_xlabel("CreaseY")
+ax.set_ylabel("CreaseZ")
 
 # Title
 title = "All Batters" if batsman == "All" else batsman
-ax.set_title(title)
+ax.set_title(title, fontsize = 12)
 
 # Colorbar
 sm = cm.ScalarMappable(cmap=cmap, norm=norm)
